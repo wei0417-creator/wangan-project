@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>望安・象棋占卜與舒壓研習</title>
+    <style>
+        :root {
+            --primary-blue: #0077b6;
+            --ocean-dark: #1d3557;
+            --accent-green: #e9f5f2;
+            --bowl-gold: #d4af37;
+            --highlight-red: #e63946;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex; justify-content: center; align-items: flex-start;
+            min-height: 100vh; margin: 0; padding: 40px 20px;
+            background: linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), 
+                        url('wangan-bg.jpg') no-repeat center center fixed;
+            background-size: cover; box-sizing: border-box;
+        }
+
+        .wrapper { display: flex; gap: 30px; max-width: 1150px; width: 100%; flex-wrap: wrap; justify-content: center; }
+
+        /* 左側：占卜區 */
+        .interactive-section { flex: 0 1 400px; width: 100%; }
+        .container {
+            background: rgba(255, 255, 255, 0.95); padding: 2rem; border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border: 1px solid var(--primary-blue);
+            position: relative;
+        }
+        .resonating { animation: resonance 0.1s infinite; box-shadow: 0 0 50px rgba(212, 175, 55, 0.4); }
+        @keyframes resonance { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.01); } }
+
+        .chess-box {
+            width: 140px; height: 140px; margin: 20px auto; border-radius: 50%;
+            background: #fff; border: 4px solid #333; display: flex; justify-content: center; align-items: center;
+            overflow: hidden; cursor: pointer; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #chess-img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        #chess-placeholder { font-size: 3.5rem; color: #ddd; }
+
+        button#draw-btn {
+            background: var(--primary-blue); color: white; border: none; padding: 12px 35px;
+            font-size: 1.1rem; border-radius: 50px; cursor: pointer; font-weight: bold;
+        }
+
+        /* 右側：活動介紹 */
+        .info-section {
+            flex: 1 1 550px; background: rgba(255, 255, 255, 0.95); padding: 2.5rem;
+            border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 8px solid var(--primary-blue);
+            text-align: left;
+        }
+        .info-section h2 { color: var(--ocean-dark); margin-top: 0; border-bottom: 2px solid #a8dadc; padding-bottom: 10px; }
+        .schedule-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+        .schedule-table th, .schedule-table td { border: 1px solid #ddd; padding: 10px; }
+        .schedule-table th { background: var(--accent-green); }
+
+        /* 報名按鈕樣式 */
+        .reg-area { margin-top: 25px; padding: 20px; background: #fff8e1; border-radius: 15px; text-align: center; border: 1px dashed #ffa000; }
+        .reg-btn {
+            display: inline-block; background: var(--highlight-red); color: white; padding: 15px 40px;
+            text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.2rem;
+            transition: 0.3s; box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+        }
+        .reg-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(230, 57, 70, 0.5); }
+
+        #gate {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="gate"><button style="padding:15px 40px; border-radius:50px; cursor:pointer; font-weight:bold;" onclick="startExperience()">開啟望安療癒空間</button></div>
+
+<audio id="bgm" loop preload="auto"><source src="wangan-relax.mp3" type="audio/mpeg"></audio>
+<audio id="bowl-sound" loop preload="auto"><source src="singing-bowl.mp3" type="audio/mpeg"></audio>
+
+<div class="wrapper">
+    <div class="interactive-section">
+        <div class="container" id="main-app">
+            <h1 style="color:var(--ocean-dark); margin-bottom:5px;">望安・象棋占卜</h1>
+            <p style="font-size:0.85rem; color:#666;">默念問題，讓頻率帶動內在指引</p>
+            <div class="chess-box" id="chess-trigger" onmouseenter="enterZen()" onmouseleave="exitZen()">
+                <span id="chess-placeholder">？</span>
+                <img id="chess-img" src="">
+            </div>
+            <p style="font-size:0.8rem; color:var(--primary-blue); margin-bottom:15px;">✨ 懸停於棋子感受頌缽共鳴 ✨</p>
+            <button id="draw-btn" onclick="drawPiece()">開啟今日指引</button>
+            <div id="result-area" style="margin-top:25px; opacity:0; transition:0.8s;">
+                <div id="piece-name" style="font-weight:bold; font-size:1.2rem; color:var(--ocean-dark);"></div>
+                <div id="piece-advice" style="font-style:italic; color:#555; margin-top:10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <h2>🌿 望安海龜島身心舒壓研習</h2>
+        <p style="color:var(--primary-blue); font-weight:bold;">正念舒壓 × 生態參與 × 象棋卜卦</p>
+        
+        <div style="font-size:0.95rem; color:#444; line-height:1.7;">
+            在澎湖望安島，隨著綠蠵龜的保育體驗海島環境，沒有緊湊的行程，只有剛剛好的活動量讓心靜下來。
+        </div>
+
+        <table class="schedule-table">
+            <tr><th>課程模組</th><th>內容說明 </th></tr>
+            <tr><td><strong>正念頌缽療癒</strong></td><td>喜馬拉雅頌缽共振調頻，釋放停滯能量，舒緩緊繃情緒。</td></tr>
+            <tr><td><strong>象棋卜卦</strong></td><td>瞭解人生劇本，嘗試與過去的自己和解，迎向輕鬆自在。</td></tr>
+            <tr><td><strong>綠蠵龜生態教育</strong></td><td>導覽保育區與潮間帶探尋，感受自然環境的變化。</td></tr>
+        </table>
+
+        <div class="reg-area">
+            <p style="margin-top:0; font-weight:bold; color:var(--ocean-dark);">📅 活動時間：115年3月7日 - 3月8日 </p>
+            <p style="font-size:0.9rem; color:#666;">每梯次限額 15 人  | 早鳥優惠：<strong>NT$ 3,900</strong> (2/15前) [cite: 30]</p>
+            <a href="https://forms.gle/YtyW165Vn9Z6obqZA" target="_blank" class="reg-btn">立即點我報名</a>
+        </div>
+        
+        <p style="font-size:0.8rem; color:#888; margin-top:15px;">
+            主辦單位：費特寧斯(Fitness)有限公司 <br>
+            聯絡人：蘇先生 (0968-916369) 
+        </p>
+    </div>
+</div>
+
+<script>
+    const pieces = [
+        { name: '帥', file: '帥.png', mean: '領導與開創', advice: '如同天台山的日出，你擁有引領大局的力量。' },
+        { name: '將', file: '將.png', mean: '沉穩與守護', advice: '像花宅的老牆般堅韌，守住內心平靜。' },
+        { name: '仕', file: '仕.png', mean: '輔助與智慧', advice: '身邊有貴人指引，請多聽取直覺建議。' },
+        { name: '兵', file: '兵.png', mean: '勇氣與漸進', advice: '小步前進也是前進，終會抵達目的地。' }
+    ];
+
+    const bgm = document.getElementById('bgm');
+    const bowl = document.getElementById('bowl-sound');
+    const app = document.getElementById('main-app');
+    let isReady = false;
+
+    function startExperience() {
+        document.getElementById('gate').style.display = 'none';
+        bgm.play().catch(() => {});
+        bowl.play().then(() => { bowl.pause(); bowl.currentTime = 0; });
+        isReady = true;
+    }
+
+    function enterZen() {
+        if (!isReady) return;
+        app.classList.add('resonating');
+        bgm.volume = 0.1; bowl.volume = 1.0; bowl.play();
+    }
+
+    function exitZen() {
+        if (!isReady) return;
+        app.classList.remove('resonating');
+        bowl.pause(); bowl.currentTime = 0; bgm.volume = 1.0;
+    }
+
+    function drawPiece() {
+        if (!isReady) startExperience();
+        const trigger = document.getElementById('chess-trigger');
+        const img = document.getElementById('chess-img');
+        const result = document.getElementById('result-area');
+        
+        trigger.style.transform = 'rotateY(360deg)';
+        const p = pieces[Math.floor(Math.random() * pieces.length)];
+        
+        setTimeout(() => {
+            document.getElementById('chess-placeholder').style.display = 'none';
+            img.src = p.file; img.style.display = 'block';
+            document.getElementById('piece-name').innerText = `【 ${p.name} 】 — ${p.mean}`;
+            document.getElementById('piece-advice').innerText = p.advice;
+            trigger.style.transform = 'rotateY(0deg)';
+            result.style.opacity = '1';
+        }, 300);
+    }
+</script>
+</body>
+</html>
